@@ -1,21 +1,26 @@
 # ChatApp
 
-ChatApp is a web-based application designed for real-time messaging and communication. This Django-powered project includes user authentication, responsive design, and interactive features.
+ChatApp is a web-based messaging application built with Django and designed to be scalable and responsive. The application supports user authentication, dashboard functionality, and interactive features.
 
 ## Features
-- User Authentication System (Signup, Login, and Logout).
-- Responsive design for various devices with dynamic scaling based on screen size.
-- Dashboard, Messaging, Settings, and Help functionality.
-- Styled with modern CSS for an appealing user interface.
+- User Authentication (Signup, Login, Logout).
+- Dynamic page scaling based on screen resolution.
+- Interactive sections like Dashboard, Messaging, and Settings.
+- Styled with CSS for a modern, user-friendly interface.
+
+---
 
 ## Requirements
-To run this project locally, ensure you have the following installed:
-- Python 3.10 or above
-- Django
-- Redis (for any asynchronous tasks or caching if used in the future)
+
+To run this project, ensure the following are installed on your system:
+- **Python 3.10** or above
+- **Django**
+- **Uvicorn** (for ASGI server support)
+- **Redis** (if you're using Django Channels or plan to use asynchronous features)
+
+---
 
 ## Installation Instructions
-Follow these steps to set up the project on your local machine:
 
 ### Step 1: Clone the Repository
 ```bash
@@ -24,54 +29,56 @@ cd <project-directory>
 ```
 
 ### Step 2: Create a Virtual Environment
-It's recommended to use a virtual environment to manage dependencies.
+Create and activate a Python virtual environment to isolate project dependencies.
 
+On Windows:
 ```bash
 python -m venv venv
+venv\Scripts\activate
 ```
 
-Activate the virtual environment:
-- On Windows:
-  ```bash
-  venv\Scripts\activate
-  ```
-- On macOS/Linux:
-  ```bash
-  source venv/bin/activate
-  ```
+On macOS/Linux:
+```bash
+python -m venv venv
+source venv/bin/activate
+```
 
 ### Step 3: Install Dependencies
-Install all necessary packages using `pip`.
-
+Install the required Python packages:
 ```bash
 pip install -r requirements.txt
 ```
 
-### Step 4: Configure the Database
-If the project uses a database, apply migrations to set up the database schema.
+---
 
+## Running the Project
+
+### Step 4: Apply Migrations
+Set up the database schema:
 ```bash
 python manage.py makemigrations
 python manage.py migrate
 ```
 
-### Step 5: Create a Superuser (Admin User)
-To access the admin panel, create a superuser:
+### Step 5: Create a Superuser
+Create a superuser account to access the Django admin panel:
 ```bash
 python manage.py createsuperuser
 ```
 
-Follow the prompts to set up admin credentials.
+Follow the prompts to set the admin username, email, and password.
 
-### Step 6: Run the Development Server
-Start the Django development server:
+### Step 6: Run the Application with Uvicorn
+Run the application using the **Uvicorn** ASGI server:
 ```bash
-python manage.py runserver
+uvicorn <project_name>.asgi:application --reload
 ```
 
-The server will start at `http://127.0.0.1:8000/` by default. Open this URL in your web browser to access the app.
+- Replace `<project_name>` with your Django project directory name (usually the name of your top-level project folder that contains `asgi.py`).
+- The `--reload` flag automatically restarts the server when you make changes to the code.
+
+The server will start at: `http://127.0.0.1:8000/`
 
 ---
 
 ## Project Directory Structure
-Here's a general overview of the project structure:
