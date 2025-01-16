@@ -30,16 +30,15 @@
             color: white;
             padding: 10px 20px;
             z-index: 1000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         header .logo {
             font-size: 1.5rem;
             font-weight: bold;
             text-transform: uppercase;
-        }
-
-        header nav {
-            float: right;
         }
 
         header nav a {
@@ -121,9 +120,47 @@
             text-align: center;
             padding: 10px;
             margin-top: 20px;
-            position: relative;
-            bottom: 0;
+        }
+
+        /* Chat Section Styles */
+        .chat-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .chat-list li {
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #f0f0f0;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .chat-list li:hover {
+            background-color: #d1e0ff;
+        }
+
+        .chat-box {
+            display: none;
+            background-color: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            border-radius: 5px;
+            height: 400px;
+            overflow-y: auto;
+        }
+
+        .chat-message {
+            margin: 10px 0;
+        }
+
+        .chat-input {
             width: 100%;
+            padding: 10px;
+            margin-top: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
         }
 
         /* Responsive Styles */
@@ -141,12 +178,6 @@
                 justify-content: space-between;
             }
 
-            .left-menu.collapsed {
-                width: 100%;
-                position: relative;
-                top: 0;
-            }
-
             .right-panel {
                 width: 100%;
                 margin-left: 0;
@@ -155,16 +186,17 @@
     </style>
 </head>
 <body>
-
 <!-- Navbar -->
 <header>
-    <div class="logo">ChatApp</div>
+    <div class="logo">
+        <a href="{% url 'index' %}" style="color: white;">ChatApp</a>
+    </div>
     <nav>
         {% if user.is_authenticated %}
             <a href="{% url 'logout' %}">Logout</a>
         {% else %}
             <a href="{% url 'login' %}">Login</a>
-            <a href="{% url 'signup' %}">Signup</a>
+            <a href="{% url 'signup' %}">Sign Up</a>
         {% endif %}
     </nav>
 </header>
@@ -175,17 +207,43 @@
     <div class="left-menu" id="leftMenu">
         <div class="toggle-btn" onclick="toggleMenu()">&#9776; Menu</div>
         <ul>
-            <li><a href="#">Dashboard</a></li>
-            <li><a href="#">Messages</a></li>
-            <li><a href="#">Settings</a></li>
-            <li><a href="#">Help</a></li>
+            <li><a href="#" id="dashboardLink" onclick="showDashboard()">Dashboard</a></li>
+            {% if user.is_authenticated %}
+                <li><a href="#" onclick="showChats()">Messages</a></li>
+            {% else %}
+                <li><a href="#" onclick="alert('Please log in to access this feature.')">Messages</a></li>
+            {% endif %}
+            <li><a href="#" onclick="showMessage('Feature yet to be added')">Settings</a></li>
+            <li><a href="#" onclick="showMessage('Feature yet to be added')">Help</a></li>
         </ul>
     </div>
 
     <!-- Main Area -->
-    <div class="main-area">
-        <h1>Welcome to ChatApp</h1>
-        <p>Connect, communicate, and collaborate with friends and colleagues instantly.</p>
+    <div class="main-area" id="mainArea">
+        <!-- Div for Dashboard messages -->
+        <div id="messageArea">
+            <h2>Welcome to ChatApp</h2>
+            <p>Click on the options in the menu to display content!</p>
+        </div>
+
+        <!-- Message List -->
+        <div id="messageList" style="display: none;">
+            <h3>Chats</h3>
+            <ul class="chat-list" id="chatList">
+                {% for user in all_users %}
+                    <li onclick="openChat('{{ request.user.id }}', '{{ user.username }}', '{{ user.id }}')">
+                        Chat with {{ user.username }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Chat Box -->
+        <div id="chatBox" class="chat-box" style="display: none;">
+            <h3>Chat with <span id="chatWith"></span></h3>
+            <div id="messages" class="messages"></div>
+            <input type="text" id="chatInput" class="chat-input" placeholder="Type a message...">
+        </div>
     </div>
 
     <!-- Right Panel -->
@@ -200,13 +258,141 @@
     &copy; 2025 ChatApp. All rights reserved.
 </footer>
 
-<!-- JavaScript to Toggle Menu -->
+<!-- JavaScript -->
 <script>
     function toggleMenu() {
-        var menu = document.getElementById('leftMenu');
+        const menu = document.getElementById('leftMenu');
         menu.classList.toggle('collapsed');
     }
-</script>
 
+    function showDashboard() {
+        const messageList = document.getElementById("messageList");
+        const chatBox = document.getElementById("chatBox");
+        const messageArea = document.getElementById("messageArea");
+
+        if (messageList) messageList.style.display = "none";
+        if (chatBox) chatBox.style.display = "none";
+
+        if (messageArea) {
+            messageArea.style.display = "block";
+            messageArea.innerHTML = `<h2>Welcome to ChatApp. Connect and chat with your close ones.</h2>`;
+        }
+    }
+
+    function showChats() {
+        const messageList = document.getElementById("messageList");
+        const chatBox = document.getElementById("chatBox");
+        const messageArea = document.getElementById("messageArea");
+
+        if (messageArea) messageArea.style.display = "none";
+        if (chatBox) chatBox.style.display = "none";
+
+        if (messageList) {
+            messageList.style.display = "block";
+        }
+    }
+
+    function showMessage(message) {
+        const messageList = document.getElementById("messageList");
+        const chatBox = document.getElementById("chatBox");
+        const messageArea = document.getElementById("messageArea");
+
+        if (messageList) messageList.style.display = "none";
+        if (chatBox) chatBox.style.display = "none";
+
+        if (messageArea) {
+            messageArea.style.display = "block";
+            messageArea.innerHTML = `<h2>${message}</h2>`;
+        }
+    }
+
+    function openChat(userId, username, receiverId) {
+        const chatWith = document.getElementById("chatWith");
+        const chatBox = document.getElementById("chatBox");
+        const messageList = document.getElementById("messageList");
+        const messageArea = document.getElementById("messageArea");
+
+        if (chatWith) chatWith.innerText = username;
+
+        if (chatBox) chatBox.style.display = "block";
+        if (messageList) messageList.style.display = "none";
+        if (messageArea) messageArea.style.display = "none";
+
+        // Fetch chat history
+        fetch(`/chat_log/${receiverId}/`)
+            .then(response => response.json())
+            .then(data => {
+                const messagesContainer = document.getElementById("messages");
+                if (messagesContainer) {
+                    messagesContainer.innerHTML = "";
+                    data.messages.forEach(msg => {
+                        const messageDiv = document.createElement("div");
+                        messageDiv.classList.add("chat-message");
+                        messageDiv.innerText = `${msg.sender}: ${msg.content}`;
+                        messagesContainer.appendChild(messageDiv);
+                    });
+
+                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+                }
+            });
+
+        const protocol = window.location.protocol === "https:" ? "wss://" : "ws://";
+        const wsURL = `${protocol}${window.location.host}/ws/chat/${userId}/${receiverId}/`;
+
+        if (chatSocket) chatSocket.close();
+        chatSocket = new WebSocket(wsURL);
+
+        chatSocket.onmessage = function (e) {
+            const data = JSON.parse(e.data);
+            const messagesContainer = document.getElementById("messages");
+            const messageDiv = document.createElement("div");
+            messageDiv.classList.add("chat-message");
+            messageDiv.innerText = `${data.sender}: ${data.message}`;
+            messagesContainer.appendChild(messageDiv);
+
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        };
+
+        chatSocket.onclose = function () {
+            console.error("Chat socket closed unexpectedly");
+        };
+    }
+
+    let chatSocket = null;
+
+    document.getElementById('chatInput').addEventListener('keypress', function (e) {
+        if (e.key === 'Enter' && chatSocket) {
+            const message = e.target.value;
+            chatSocket.send(JSON.stringify({ message }));
+            e.target.value = '';
+        }
+    });
+    function adjustPageSize() {
+        const screenWidth = window.innerWidth;
+        const body = document.body;
+
+        if (screenWidth <= 600) {
+            body.style.transform = "scale(0.5)";
+            body.style.transformOrigin = "0 0";
+        } else if (screenWidth > 600 && screenWidth <= 700) {
+            body.style.transform = "scale(0.75)";
+            body.style.transformOrigin = "0 0";
+        } else if (screenWidth > 700 && screenWidth <= 767) {
+            body.style.transform = "scale(0.8)";
+            body.style.transformOrigin = "0 0";
+        } else if (screenWidth > 992 && screenWidth <= 1600) {
+            body.style.transform = "scale(0.9)";
+            body.style.transformOrigin = "0 0";
+        } else {
+            body.style.transform = "scale(1)";
+            body.style.transformOrigin = "0 0";
+        }
+    }
+
+    window.addEventListener('resize', adjustPageSize);
+    adjustPageSize();
+
+
+</script>
 </body>
 </html>

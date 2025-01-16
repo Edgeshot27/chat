@@ -38,8 +38,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'chat',
+    'channels',
+    'corsheaders',
 ]
-
+CORS_ALLOW_ALL_ORIGINS = True
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -50,9 +52,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 'django.contrib.messages.middleware.MessageMiddleware',
 ]
-
+MIDDLEWARE.insert(0, 'corsheaders.middleware.CorsMiddleware')
 ROOT_URLCONF = 'Chatting.urls'
 
+ASGI_APPLICATION = 'Chatting.asgi.application'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -69,7 +72,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'Chatting.wsgi.application'
+# WSGI_APPLICATION = 'Chatting.wsgi.application'
 
 
 # Database
@@ -128,3 +131,12 @@ AUTH_USER_MODEL = 'chat.User'
 
 STATIC_URL='static/'
 STATICFILES_DIRS=[BASE_DIR/'static']
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}

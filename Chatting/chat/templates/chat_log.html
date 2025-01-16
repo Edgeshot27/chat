@@ -31,13 +31,15 @@
             box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
             margin-top: 20px;
+            display: flex;
+            flex-direction: column;
         }
 
         .messages {
             list-style: none;
             padding: 0;
             height: 300px;
-            overflow-y: scroll;
+            overflow-y: auto;
             margin-bottom: 20px;
             border-bottom: 2px solid #ddd;
         }
@@ -110,6 +112,20 @@
 
         .footer a:hover {
             text-decoration: underline;
+        }
+
+        /* Scrollbar Styles */
+        .messages::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .messages::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .messages::-webkit-scrollbar-thumb:hover {
+            background: #555;
         }
     </style>
 </head>

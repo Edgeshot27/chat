@@ -1,3 +1,4 @@
+from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model,authenticate,login,logout
@@ -6,7 +7,10 @@ from .models import Message
 from django.db import models
 # Create your views here.
 def index(request):
-    return render(request,'index.html')
+    if request.user.is_authenticated:
+        return redirect('home', user_id=request.user.id)
+    else:
+        return render(request, 'index.html')
 
 def signup(request):
     if request.method=='POST':
@@ -18,16 +22,17 @@ def signup(request):
         re_password=request.POST['re_password']
         if password==re_password:
             if User.objects.filter(username=username).exists():
-                messages.error('Passwords did not match')
+                messages.error(request,'Passwords did not match')
                 return redirect('signup')
             else:
                 user=User.objects.create_user(username=username,email=email,phone_no=phone_no,password=password)
                 user.save()
 
                 login(user=user,request=request)
-                return redirect('chat_log',user_id=user.id)
+
+                return redirect('home',user_id=user.id)
         else:
-            messages.error('Passwords did not match')
+            messages.error(request,'Passwords did not match')
             return redirect('signup')
     return render(request,'signup.html')
 
@@ -38,9 +43,11 @@ def user_login(request):
         user=authenticate(request,username=username,password=password)
         if user is not None:
             login(request,user)
-            return redirect('chat_log',user_id=user.id)
+
+            return redirect('home',user_id=user.id)
+
         else:
-            messages.error('Invalid Credentials')
+            messages.error(request,'Invalid Credentials')
             return redirect('login')
     else:
         return render(request,'login.html')
@@ -49,21 +56,59 @@ def user_login(request):
 @login_required
 def user_logout(request):
     logout(request)
-    return render(request,'index.html')
+    return redirect('index')
 
 @login_required
 def home(request,user_id):
-    user=get_object_or_404(get_user_model(),id=user_id)
-    return render(request,'index.html',{'user':user})
+    all_users = get_user_model().objects.exclude(id=request.user.id).filter(is_superuser=False)
+
+    messages = Message.objects.filter(
+        models.Q(sender=request.user) | models.Q(receiver=request.user)
+    ).order_by('timestamp')
+
+
+    chat_users = []
+    for message in messages:
+        if message.sender != request.user:
+            chat_users.append(message.sender)
+        else:
+            chat_users.append(message.receiver)
+
+    unique_users = list(set(chat_users))
+
+    return render(request, 'index.html', {
+        'chat_users': unique_users,
+        'all_users': all_users,
+        'user_id':request.user.id
+    })
+
 
 @login_required
-def chat_log(request,user_id):
-    other_user=get_object_or_404(get_user_model(),id=user_id)
-    message=Message.objects.filter((models.Q(sender=request.user)) & (models.Q(receiver=other_user)) | (models.Q(sender=other_user)) & (models.Q(receiver=request.user)))
+def chat_log(request, user_id):
+    current_user = request.user
+    chat_user = get_object_or_404(get_user_model(), id=user_id)
 
-    if request.method=='POST':
-        content=request.POST['content']
-        if content.strip():
-            Message.objects.create(sender=request.user,receiver=other_user,content=content)
-            return redirect('chat_log',user_id=user_id)
-    return render(request,'chat_log.html',{'messages':message,'other_user':other_user})
+    messages = Message.objects.filter(
+        models.Q(sender=current_user, receiver=chat_user) |
+        models.Q(sender=chat_user, receiver=current_user)
+    ).order_by('timestamp')
+    print(f"Messages between {current_user} and {chat_user}: {messages}")
+    messages_data = [
+        {
+            "sender": message.sender.username,
+            "receiver": message.receiver.username,
+            "content": message.message,
+            "timestamp": message.timestamp.strftime('%Y-%m-%d %H:%M:%S'),
+        }
+        for message in messages
+    ]
+    print(f"Messages Data: {messages_data}")
+
+    return JsonResponse({'messages':messages_data})
+
+def get_messages(request, user_id):
+    messages = Message.objects.filter(id=user_id)
+    data = {
+        'messages': [{'sender': msg.sender.username, 'content': msg.content} for msg in messages]
+    }
+    return JsonResponse(data)
